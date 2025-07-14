@@ -1,0 +1,13 @@
+{
+  "userId": "testuser123",
+  "password": "TestPassword123!",
+  "email": "test@example.com",
+  "name": "홍길동",
+  "phoneNumber": "010-1234-5678",
+  "birthDate": "1990-01-01",
+  "gender": "MALE",
+  "isMarried": false,
+  "job": "개발자",
+  "diseases": ["없음"],
+  "subscriptions": ["기본보험"]
+}
