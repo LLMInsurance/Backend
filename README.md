@@ -80,17 +80,17 @@ interface ApiService {
 **SignupRequest.kt**
 ```kotlin
 data class SignupRequest(
-    val userId: String,           // 4-20자, 영문/숫자/언더스코어만
-    val password: String,         // 8-20자, 영문+숫자 포함
-    val email: String,            // 이메일 형식
-    val name: String,             // 2-50자
-    val phoneNumber: String,      // 010-1234-5678 형식
-    val birthDate: String,        // yyyy-MM-dd 형식
-    val gender: String,           // "남" 또는 "여"
-    val isMarried: Boolean,       // 결혼 여부
-    val job: String,              // 2-100자
-    val diseases: Array<String>?, // 기존 질병 (선택사항)
-    val subscriptions: Array<String>? // 기존 보험 가입 (선택사항)
+    val userId: String,           
+    val password: String,         
+    val email: String,           
+    val name: String,             
+    val phoneNumber: String,      
+    val birthDate: String,        
+    val gender: String,           
+    val isMarried: Boolean,       
+    val job: String,              
+    val diseases: Array<String>?, 
+    val subscriptions: Array<String>? 
 )
 ```
 
@@ -126,9 +126,9 @@ data class LoginResponse(
 data class ProfileUpdateRequest(
     val email: String?,
     val name: String?,
-    val phoneNumber: String?,      // 010-1234-5678 형식
-    val birthDate: String?,        // yyyy-MM-dd 형식
-    val gender: String?,           // "남" 또는 "여"
+    val phoneNumber: String?,      
+    val birthDate: String?,        
+    val gender: String?,           
     val isMarried: Boolean?,
     val job: String?,
     val diseases: Array<String>?,
