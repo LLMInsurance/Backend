@@ -1,0 +1,38 @@
+# Build artifacts
+build/
+bin/
+.gradle/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test files
+src/test/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Scripts
+setup-cloudsql.sh
+
+# Temporary files
+*.tmp
+*.swp
+*.swo 
