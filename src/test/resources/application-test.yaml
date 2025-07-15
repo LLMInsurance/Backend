@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  h2:
+    console:
+      enabled: true
+
+# JWT 설정
+jwt:
+  secret: test-secret-key-for-testing-purposes-only
+  expiration: 86400000 # 24시간
+
+# OpenAI 설정 (테스트용 더미 값)
+openai:
+  api:
+    key: test-api-key
+    base-url: https://api.openai.com/v1
+
+# CORS 설정
+cors:
+  allowed-origins: http://localhost:3000
+
+# 로깅 설정
+logging:
+  level:
+    com.example.LLMInsurance_Backend: DEBUG
+    org.springframework.security: DEBUG 

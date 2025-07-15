@@ -1,93 +1,192 @@
-# LLM Insurance Backend API
+# LLM Insurance Backend
 
-## 🚀 기술 스택
+## 🏗️ 기술 스택
 
-- **Java 17**
-- **Spring Boot 3.5.3**
-- **Spring Security + JWT**
-- **Spring Data JPA**
-- **PostgreSQL**
-- **Gradle**
+- **Backend**: Spring Boot 3.5.3, Java 17
+- **Database**: PostgreSQL (Cloud SQL), H2 (개발용)
+- **Authentication**: JWT + Spring Security
+- **AI Integration**: OpenAI API
+- **Deployment**: Google Cloud Run
+- **Build**: Gradle
+- **Containerization**: Docker
 
-## 🔒 보안 설정
-
-### ⚠️ 중요: 환경 변수 설정 필수
-
-```bash
-# JWT 설정 (필수)
-JWT_SECRET=your_strong_jwt_secret_here
-
-# 데이터베이스 연결
-DATABASE_URL=jdbc:postgresql://localhost:5432/llminsurance
-DATABASE_USERNAME=your_username
-DATABASE_PASSWORD=your_password
-
-# OpenAI API
-OPENAI_API_KEY=your_openai_api_key
-```
-
-### 🛡️ 로컬 개발 환경 설정
-
-1. **환경 변수 파일 생성**
-   ```bash
-   cp env.local.example .env
-   # .env 파일을 편집하여 실제 값 입력
-   ```
-
-2. **강력한 JWT Secret 생성**
-   ```bash
-   openssl rand -hex 32
-   ```
-
-3. **보안 검사 실행**
-   ```bash
-   ./gradlew dependencyCheckAnalyze
-   ```
-
-참고사항 -> [SECURITY.md](SECURITY.md)
-
-## 📋 주요 기능(추후 추가 예정)
-
-- 사용자 회원가입/로그인
-- JWT 토큰 기반 인증
-- 사용자 프로필 관리
-- 사용자 ID 중복 확인
-- 로그아웃
-
-## 🔧 서버 설정
+## 🚀 배포 환경
 
 ### 로컬 개발 환경
+- H2 인메모리 데이터베이스 사용
+- 개발 편의를 위한 H2 Console 제공
+
+### 프로덕션 환경 (Google Cloud Platform)
+- **Cloud Run**: 서버리스 컨테이너 플랫폼
+- **Cloud SQL**: 관리형 PostgreSQL
+- **Container Registry**: Docker 이미지 저장
+
+## 📦 프로젝트 구조
+
 ```
-Base URL: http://localhost:8080
+src/
+├── main/
+│   ├── java/com/example/LLMInsurance_Backend/
+│   │   ├── controller/         # REST API 컨트롤러
+│   │   ├── service/           # 비즈니스 로직
+│   │   ├── domain/
+│   │   │   ├── entity/        # JPA 엔티티
+│   │   │   ├── dto/           # 데이터 전송 객체
+│   │   │   └── repository/    # 데이터 접근 계층
+│   │   └── global/
+│   │       ├── config/        # 설정 클래스
+│   │       ├── exception/     # 예외 처리
+│   │       └── utils/         # 유틸리티
+│   └── resources/
+│       ├── application.yaml   # 설정 파일
+│       └── application-test.yaml
+└── test/                      # 테스트 코드
 ```
 
-## 🔑 인증 방식
+## 🛠️ 로컬 개발 환경 설정
 
-JWT(JSON Web Token) 기반 인증을 사용
-
-### Authorization Header
+### 1. 프로젝트 클론
+```bash
+git clone <repository-url>
+cd LLMInsurance_Backend
 ```
-Authorization: Bearer {access_token}
+
+### 2. 애플리케이션 실행
+```bash
+# Gradle을 통한 실행
+./gradlew bootRun
+
+# 또는 JAR 파일 빌드 후 실행
+./gradlew bootJar
+java -jar build/libs/LLMInsurance_Backend-0.0.1-SNAPSHOT.jar
 ```
 
-## 📱 Android에서 API 사용하기
+### 3. H2 Console 접속
+- URL: http://localhost:8080/h2-console
+- JDBC URL: `jdbc:h2:mem:testdb`
+- Username: `sa`
+- Password: (빈 값)
 
-### 1. HTTP 클라이언트 설정 (Retrofit 사용 예시)
+## 📱 안드로이드 개발자용 API 가이드
 
-**build.gradle (Module: app)**
-```gradle
-dependencies {
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+### 서버 정보
+- **배포 URL**: `https://llminsurance-backend-llqm7zqpqa-uc.a.run.app`
+- **로컬 개발 URL**: `http://localhost:8080`
+
+### 공통 설정
+- **Content-Type**: `application/json`
+- **JWT 인증**: `Authorization: Bearer {accessToken}` (로그인 후)
+
+### 1. Health Check (서버 상태 확인)
+```http
+GET /actuator/health
+```
+**응답 예시:**
+```json
+{"status":"UP"}
+```
+
+### 2. 회원가입
+```http
+POST /api/v1/auth/signup
+Content-Type: application/json
+
+{
+  "userId": "testuser123",
+  "password": "TestPassword123",
+  "email": "test@example.com",
+  "name": "홍길동",
+  "phoneNumber": "010-1234-5678",
+  "birthDate": "1990-01-01",
+  "gender": "남",
+  "isMarried": false,
+  "job": "개발자",
+  "diseases": [],
+  "subscriptions": []
+}
+```
+**응답 예시:**
+```json
+"회원가입이 완료되었습니다."
+```
+
+### 3. 로그인
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "userId": "testuser123",
+  "password": "TestPassword123"
+}
+```
+**응답 예시:**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+  "tokenType": "Bearer",
+  "userId": "testuser123",
+  "email": "test@example.com",
+  "name": "홍길동",
+  "phoneNumber": "010-1234-5678",
+  "birthDate": "1990-01-01",
+  "gender": "남",
+  "job": "개발자",
+  "diseases": [],
+  "subscriptions": [],
+  "married": false,
+  "login": true
 }
 ```
 
-**ApiService.kt**
-```kotlin
-import retrofit2.Response
-import retrofit2.http.*
+### 4. 사용자 프로필 조회 (인증 필요)
+```http
+GET /api/v1/auth/profile
+Authorization: Bearer {accessToken}
+```
 
+### 5. 사용자 프로필 수정 (인증 필요)
+```http
+PUT /api/v1/auth/profile
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "name": "수정된 이름",
+  "phoneNumber": "010-9876-5432",
+  "job": "수정된 직업"
+}
+```
+
+### 6. 사용자 ID 중복 확인
+```http
+GET /api/v1/auth/check-userid/{userId}
+```
+
+### 7. 로그아웃 (인증 필요)
+```http
+POST /api/v1/auth/logout
+Authorization: Bearer {accessToken}
+```
+
+### 🔧 안드로이드 구현 팁
+
+#### Retrofit 설정 예시
+```kotlin
+// RetrofitClient.kt
+object RetrofitClient {
+    private const val BASE_URL = "https://llminsurance-backend-llqm7zqpqa-uc.a.run.app/"
+    
+    val apiService: ApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+    }
+}
+
+// ApiService.kt
 interface ApiService {
     @POST("api/v1/auth/signup")
     suspend fun signup(@Body request: SignupRequest): Response<String>
@@ -95,330 +194,262 @@ interface ApiService {
     @POST("api/v1/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
     
-    @GET("api/v1/auth/check-userid/{userId}")
-    suspend fun checkUserIdDuplicate(@Path("userId") userId: String): Response<String>
-    
     @GET("api/v1/auth/profile")
     suspend fun getProfile(@Header("Authorization") token: String): Response<ProfileResponse>
-    
-    @PUT("api/v1/auth/profile")
-    suspend fun updateProfile(
-        @Header("Authorization") token: String,
-        @Body request: ProfileUpdateRequest
-    ): Response<ProfileResponse>
-    
-    @POST("api/v1/auth/logout")
-    suspend fun logout(@Header("Authorization") token: String): Response<String>
 }
 ```
 
-### 2. 데이터 클래스 정의
+#### 에러 처리
+- **400 Bad Request**: 유효성 검사 실패
+- **401 Unauthorized**: 인증 토큰 없음/만료
+- **403 Forbidden**: 권한 없음
+- **409 Conflict**: 중복된 사용자 ID
+- **500 Internal Server Error**: 서버 오류
 
-**SignupRequest.kt**
+#### JWT 토큰 관리
 ```kotlin
-data class SignupRequest(
-    val userId: String,           
-    val password: String,         
-    val email: String,           
-    val name: String,             
-    val phoneNumber: String,      
-    val birthDate: String,        
-    val gender: String,           
-    val isMarried: Boolean,       
-    val job: String,              
-    val diseases: Array<String>?, 
-    val subscriptions: Array<String>? 
-)
+// SharedPreferences에 토큰 저장
+fun saveToken(token: String) {
+    sharedPreferences.edit()
+        .putString("access_token", token)
+        .apply()
+}
+
+// Authorization 헤더 추가
+fun getAuthHeader(): String {
+    val token = sharedPreferences.getString("access_token", "")
+    return "Bearer $token"
+}
 ```
 
-**LoginRequest.kt**
+#### 데이터 모델 클래스
 ```kotlin
+// SignupRequest.kt
+data class SignupRequest(
+    val userId: String,
+    val password: String,
+    val email: String,
+    val name: String,
+    val phoneNumber: String,
+    val birthDate: String, // "YYYY-MM-DD" 형식
+    val gender: String, // "남" 또는 "여"
+    val isMarried: Boolean,
+    val job: String,
+    val diseases: List<String> = emptyList(),
+    val subscriptions: List<String> = emptyList()
+)
+
+// LoginRequest.kt
 data class LoginRequest(
     val userId: String,
     val password: String
 )
-```
 
-**LoginResponse.kt**
-```kotlin
+// LoginResponse.kt
 data class LoginResponse(
     val accessToken: String,
-    val tokenType: String,        // "Bearer"
+    val tokenType: String,
     val userId: String,
     val email: String,
     val name: String,
     val phoneNumber: String,
     val birthDate: String,
     val gender: String,
-    val isMarried: Boolean,
     val job: String,
-    val diseases: Array<String>?,
-    val subscriptions: Array<String>?,
-    val isLogin: Boolean
+    val diseases: List<String>,
+    val subscriptions: List<String>,
+    val married: Boolean,
+    val login: Boolean
 )
-```
 
-**ProfileUpdateRequest.kt**
-```kotlin
+// ProfileUpdateRequest.kt
 data class ProfileUpdateRequest(
-    val email: String?,
-    val name: String?,
-    val phoneNumber: String?,      
-    val birthDate: String?,        
-    val gender: String?,           
-    val isMarried: Boolean?,
-    val job: String?,
-    val diseases: Array<String>?,
-    val subscriptions: Array<String>?
+    val name: String? = null,
+    val phoneNumber: String? = null,
+    val job: String? = null,
+    val diseases: List<String>? = null,
+    val subscriptions: List<String>? = null
 )
 ```
 
-**ProfileResponse.kt**
+#### 입력값 유효성 검사 (클라이언트)
 ```kotlin
-data class ProfileResponse(
-    val userId: String,
-    val email: String,
-    val name: String,
-    val phoneNumber: String,
-    val birthDate: String,
-    val gender: String,
-    val isMarried: Boolean,
-    val job: String,
-    val diseases: Array<String>?,
-    val subscriptions: Array<String>?,
-    val isLogin: Boolean
-)
-```
-
-## 📚 API 엔드포인트
-
-### 1. 회원가입
-```
-POST /api/v1/auth/signup
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-    "userId": "testuser123",
-    "password": "password123",
-    "email": "test@example.com",
-    "name": "홍길동",
-    "phoneNumber": "010-1234-5678",
-    "birthDate": "1990-01-01",
-    "gender": "남",
-    "isMarried": false,
-    "job": "개발자",
-    "diseases": ["고혈압"],
-    "subscriptions": ["국민건강보험"]
-}
-```
-
-**Response:**
-```json
-"회원가입이 완료되었습니다."
-```
-
-### 2. 로그인
-```
-POST /api/v1/auth/login
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-    "userId": "testuser123",
-    "password": "password123"
-}
-```
-
-**Response:**
-```json
-{
-    "accessToken": "토큰토큰토큰...",
-    "tokenType": "Bearer",
-    "userId": "testuser123",
-    "email": "test@example.com",
-    "name": "홍길동",
-    "phoneNumber": "010-1234-5678",
-    "birthDate": "1990-01-01",
-    "gender": "남",
-    "isMarried": false,
-    "job": "개발자",
-    "diseases": ["고혈압"],
-    "subscriptions": ["국민건강보험"],
-    "isLogin": true
-}
-```
-
-### 3. 사용자 ID 중복 확인
-```
-GET /api/v1/auth/check-userid/{userId}
-```
-
-**Response (사용 가능):**
-```json
-"사용 가능한 사용자 ID입니다."
-```
-
-**Response (중복):**
-```json
-"이미 사용 중인 사용자 ID입니다."
-```
-
-### 4. 프로필 조회
-```
-GET /api/v1/auth/profile
-Authorization: Bearer {access_token}
-```
-
-**Response:**
-```json
-{
-    "userId": "testuser123",
-    "email": "test@example.com",
-    "name": "홍길동",
-    "phoneNumber": "010-1234-5678",
-    "birthDate": "1990-01-01",
-    "gender": "남",
-    "isMarried": false,
-    "job": "개발자",
-    "diseases": ["고혈압"],
-    "subscriptions": ["국민건강보험"],
-    "isLogin": true
-}
-```
-
-### 5. 프로필 수정
-```
-PUT /api/v1/auth/profile
-Authorization: Bearer {access_token}
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-    "email": "newemail@example.com",
-    "name": "홍길동",
-    "phoneNumber": "010-5678-1234",
-    "job": "시니어 개발자"
-}
-```
-
-**Response:**
-```json
-{
-    "userId": "testuser123",
-    "email": "newemail@example.com",
-    "name": "홍길동",
-    "phoneNumber": "010-5678-1234",
-    "birthDate": "1990-01-01",
-    "gender": "남",
-    "isMarried": false,
-    "job": "시니어 개발자",
-    "diseases": ["고혈압"],
-    "subscriptions": ["국민건강보험"],
-    "isLogin": true
-}
-```
-
-### 6. 로그아웃
-```
-POST /api/v1/auth/logout
-Authorization: Bearer {access_token}
-```
-
-**Response:**
-```json
-"로그아웃되었습니다."
-```
-
-## ⚠️ 에러 응답
-
-### HTTP 상태 코드
-- `200`: 성공
-- `400`: 잘못된 요청 (유효성 검사 실패)
-- `401`: 인증 실패
-- `403`: 권한 없음
-- `404`: 리소스를 찾을 수 없음
-- `500`: 서버 에러
-
-### 에러 응답 예시
-```json
-{
-    "timestamp": "2024-01-20T10:30:00.000+00:00",
-    "status": 400,
-    "error": "Bad Request",
-    "message": "사용자 ID는 필수입니다.",
-    "path": "/api/v1/auth/signup"
-}
-```
-
-## 📋 유효성 검사 규칙
-
-### 회원가입 시 필수 검증 항목
-- **userId**: 
-- **password**: 
-- **email**: 
-- **name**: 
-- **phoneNumber**: 
-- **birthDate**: 
-- **gender**: 
-- **job**: 
-
-### 프로필 수정 시 검증 항목
-- **email**: 올바른 이메일 형식 (선택사항)
-
-## 🔒 보안 고려사항
-### 1. SharedPreferences를 이용한 토큰 관리
-```kotlin
-class TokenManager(context: Context) {
-    private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
-    
-    fun saveToken(token: String) {
-        prefs.edit().putString("access_token", token).apply()
-    }
-    
-    fun getToken(): String? {
-        return prefs.getString("access_token", null)
-    }
-    
-    fun clearToken() {
-        prefs.edit().remove("access_token").apply()
+fun validateSignupInput(request: SignupRequest): String? {
+    return when {
+        request.userId.length < 4 || request.userId.length > 20 -> 
+            "사용자 ID는 4자 이상 20자 이하여야 합니다."
+        !request.userId.matches(Regex("^[a-zA-Z0-9_]+$")) -> 
+            "사용자 ID는 영문, 숫자, 언더스코어만 사용 가능합니다."
+        request.password.length < 8 || request.password.length > 20 -> 
+            "비밀번호는 8자 이상 20자 이하여야 합니다."
+        !request.password.matches(Regex("^(?=.*[a-zA-Z])(?=.*\\d)[a-zA-Z\\d]+$")) -> 
+            "비밀번호는 숫자 및 영문이 포함되어야 합니다."
+        !request.phoneNumber.matches(Regex("^01[0-9]-\\d{3,4}-\\d{4}$")) -> 
+            "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)"
+        request.gender !in listOf("남", "여") -> 
+            "성별은 남 또는 여 이어야 합니다."
+        else -> null
     }
 }
 ```
 
-### 2. 네트워크 에러 처리
+#### 네트워크 보안 설정
 ```kotlin
-try {
-    val response = apiService.login(loginRequest)
-    if (response.isSuccessful) {
-        val loginResponse = response.body()
-        // 성공 처리
-    } else {
-        // 에러 처리
-        when (response.code()) {
-            400 -> "잘못된 요청입니다."
-            401 -> "인증에 실패했습니다."
-            500 -> "서버 에러가 발생했습니다."
-            else -> "알 수 없는 에러가 발생했습니다."
+// Network Security Config (network_security_config.xml)
+// res/xml/network_security_config.xml
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">llminsurance-backend-llqm7zqpqa-uc.a.run.app</domain>
+    </domain-config>
+</network-security-config>
+
+// AndroidManifest.xml
+<application
+    android:networkSecurityConfig="@xml/network_security_config"
+    ... >
+</application>
+```
+
+#### OkHttp 인터셉터 (토큰 자동 추가)
+```kotlin
+class AuthInterceptor(private val tokenManager: TokenManager) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val originalRequest = chain.request()
+        val token = tokenManager.getToken()
+        
+        val newRequest = if (token != null && !originalRequest.url.encodedPath.contains("/auth/login") 
+                            && !originalRequest.url.encodedPath.contains("/auth/signup")) {
+            originalRequest.newBuilder()
+                .header("Authorization", "Bearer $token")
+                .build()
+        } else {
+            originalRequest
+        }
+        
+        return chain.proceed(newRequest)
+    }
+}
+
+// Retrofit 클라이언트에 인터셉터 추가
+val okHttpClient = OkHttpClient.Builder()
+    .addInterceptor(AuthInterceptor(tokenManager))
+    .build()
+
+val retrofit = Retrofit.Builder()
+    .baseUrl(BASE_URL)
+    .client(okHttpClient)
+    .addConverterFactory(GsonConverterFactory.create())
+    .build()
+```
+
+#### 사용 예시
+```kotlin
+class AuthRepository(private val apiService: ApiService) {
+    
+    suspend fun signup(request: SignupRequest): Result<String> {
+        return try {
+            val response = apiService.signup(request)
+            if (response.isSuccessful) {
+                Result.success(response.body() ?: "회원가입 성공")
+            } else {
+                Result.failure(Exception("회원가입 실패: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
-} catch (e: Exception) {
-    // 네트워크 에러 처리
+    
+    suspend fun login(request: LoginRequest): Result<LoginResponse> {
+        return try {
+            val response = apiService.login(request)
+            if (response.isSuccessful) {
+                response.body()?.let { loginResponse ->
+                    // 토큰 저장
+                    tokenManager.saveToken(loginResponse.accessToken)
+                    Result.success(loginResponse)
+                } ?: Result.failure(Exception("응답 데이터가 없습니다"))
+            } else {
+                Result.failure(Exception("로그인 실패: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
 ```
 
-### 3. 날짜 형식 변환
-```kotlin
-// String to LocalDate
-val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-val birthDate = LocalDate.parse("1990-01-01", dateFormatter)
+## 🧪 API 테스트
 
-// LocalDate to String
-val birthDateString = birthDate.format(dateFormatter)
+### JUnit 테스트 실행
+```bash
+./gradlew test
 ```
+
+## ☁️ Cloud Run 배포
+
+### 전제 조건
+1. Google Cloud SDK 설치
+2. Docker Desktop 설치
+3. GCP 프로젝트 생성
+
+### 1. GCP 인증
+```bash
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+```
+
+### 2. Cloud SQL 설정 (선택사항)
+```bash
+./setup-cloudsql.sh
+```
+
+### 3. Cloud Run 배포
+```bash
+./deploy-to-cloudrun.sh
+```
+
+### 4. 환경 변수 설정
+배포 후 Cloud Run 콘솔에서 다음 환경 변수들을 설정하세요:
+
+- `DATABASE_URL`: PostgreSQL 연결 문자열
+- `DATABASE_USERNAME`: 데이터베이스 사용자명
+- `DATABASE_PASSWORD`: 데이터베이스 비밀번호
+- `JWT_SECRET`: JWT 서명용 비밀키
+- `OPENAI_API_KEY`: OpenAI API 키
+
+## 🔧 설정 파일
+
+### application.yaml
+- `dev` 프로파일: H2 인메모리 데이터베이스
+- `prod` 프로파일: Cloud SQL PostgreSQL
+- `test` 프로파일: 테스트용 H2 데이터베이스
+
+## 📋 주요 기능
+
+- ✅ JWT 기반 사용자 인증/인가
+- ✅ Spring Security 보안 설정
+- ✅ 사용자 회원가입/로그인
+- ✅ RESTful API 설계
+- ✅ JPA를 통한 데이터 영속성
+- ✅ 전역 예외 처리
+- ✅ API 입력값 검증
+- ✅ JUnit 통합 테스트
+- ✅ Cloud Run 배포 지원
+
+## 🌐 아키텍처
+
+```
+[Client] → [Cloud Run] → [Cloud SQL]
+                ↓
+         [Container Registry]
+                ↓
+         [Cloud Build/Deploy]
+```
+
+## 📚 참고 문서
+
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [Google Cloud Run](https://cloud.google.com/run/docs)
+- [Google Cloud SQL](https://cloud.google.com/sql/docs)
+- [JWT.io](https://jwt.io/)

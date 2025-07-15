@@ -42,6 +42,9 @@ public class SecurityConfig {
             // CSRF 비활성화 (JWT 사용시 필요 없음)
             .csrf(AbstractHttpConfigurer::disable)
             
+            // H2 콘솔을 위한 프레임 옵션 비활성화
+            .headers(headers -> headers.frameOptions().disable())
+            
             // CORS 설정
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             
@@ -51,10 +54,10 @@ public class SecurityConfig {
             // 요청 인증 설정
             .authorizeHttpRequests(auth -> auth
                 // 인증 없이 접근 가능한 경로
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/users/register").permitAll() // 회원가입
+                .requestMatchers("/api/v1/auth/**").permitAll() // 인증 API
                 .requestMatchers("/health").permitAll() // 헬스체크
                 .requestMatchers("/actuator/**").permitAll() // 액추에이터
+                .requestMatchers("/h2-console/**").permitAll() // H2 콘솔
                 
                 // 그 외 모든 요청은 인증 필요
                 .anyRequest().authenticated()

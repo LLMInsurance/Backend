@@ -1,44 +1,38 @@
-# Gradle 빌드 파일들
-.gradle
+# Build artifacts
 build/
-!gradle/wrapper/gradle-wrapper.jar
+bin/
+.gradle/
 
-# IDE 파일들
+# IDE files
 .idea/
-*.iws
+.vscode/
 *.iml
 *.ipr
-out/
-.vscode/
+*.iws
 
-# OS 파일들
+# OS files
 .DS_Store
 Thumbs.db
 
-# Git 파일들
-.git
+# Logs
+*.log
+logs/
+
+# Test files
+src/test/
+
+# Git
+.git/
 .gitignore
 
-# 로그 파일들
-*.log
-
-# 임시 파일들
-*.tmp
-*.swp
-*.swo
-
-# 환경 설정 파일들 (민감한 정보 포함)
-.env
-*.env
-
-# 문서 파일들
+# Documentation
 README.md
 *.md
 
-# Docker 파일들
-Dockerfile
-.dockerignore
+# Scripts
+setup-cloudsql.sh
 
-# Test 결과
-test-results/
-bin/ 
+# Temporary files
+*.tmp
+*.swp
+*.swo 

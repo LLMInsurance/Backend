@@ -1,186 +1,96 @@
-# 🔒 보안 설정 가이드
+# 🔒 보안 가이드
 
-이 문서는 LLM Insurance Backend 애플리케이션의 보안 설정 방법을 설명합니다.
+## ⚠️ 깃허브 업로드 전 필수 확인사항
 
-## 🔑 환경 변수 설정
-
-### 1. JWT Secret 생성
-
-**절대로 기본값을 그대로 사용하지 말기**
+### 1. 환경 변수 설정 확인
+프로덕션 환경에서는 다음 환경 변수들이 **반드시** 설정되어야 합니다:
 
 ```bash
-# 강력한 JWT Secret 생성
-openssl rand -hex 32
+# JWT 시크릿 (32글자 이상 강력한 키)
+export JWT_SECRET=$(openssl rand -hex 32)
 
-# 또는 다음 중 하나 사용
-openssl rand -base64 32
-uuidgen | tr -d '-'
+# 데이터베이스 패스워드
+export DB_PASSWORD=your_very_secure_password
+
+# OpenAI API 키
+export OPENAI_API_KEY=your_openai_api_key
 ```
 
-### 2. 필수 환경 변수
+### 2. 하드코딩된 비밀번호 제거 ✅
+- ✅ `application-prod.yaml`의 하드코딩된 JWT 시크릿 제거 완료
+- ✅ `deploy-to-cloudrun.sh`의 하드코딩된 데이터베이스 패스워드 제거 완료
+- ✅ `cloudbuild.yaml`의 보안 정보 주석 처리 완료
 
-다음 환경 변수들은 반드시 설정
+### 3. .gitignore 설정 ✅
+다음 파일들이 올바르게 제외되어 있습니다:
+- `.env*` 파일들
+- `application-secrets.*` 파일들
+- 인증서 파일들 (`*.key`, `*.pem`, etc.)
 
-```bash
-# JWT 설정 (필수)
-JWT_SECRET=여기에_강력한_32글자_이상의_키_입력
-
-# 데이터베이스 연결 정보
-DATABASE_URL=jdbc:postgresql://your-host:5432/your-database
-DATABASE_USERNAME=your_secure_username
-DATABASE_PASSWORD=your_secure_password
-
-# OpenAI API Key
-OPENAI_API_KEY=your_actual_openai_api_key
-```
-
-### 3. 환경별 설정
-
-#### 로컬 개발환경
-```bash
-# .env 파일 생성 (git에 커밋하지 않음)
-cp env.local.example .env
-# 실제 값으로 편집
-```
-
-#### 프로덕션 환경
-- Cloud Run: GCP Console에서 환경 변수 설정
-- Docker: docker-compose에서 환경 변수 파일 사용
-- Kubernetes: Secret 리소스 사용
+### 4. 안전한 기본값 사용 ✅
+모든 설정 파일에서 환경 변수를 사용하고 있습니다:
+- `${JWT_SECRET}` (기본값 없음)
+- `${DATABASE_PASSWORD}` (기본값 없음)
+- `${OPENAI_API_KEY}` (기본값 없음)
 
 ## 🛡️ 보안 체크리스트
 
-### ✅ 배포 전 확인사항
+### ✅ Git 커밋 전 확인
+- [ ] `.env` 파일이 `.gitignore`에 포함되어 있는가?
+- [ ] 하드코딩된 API 키나 비밀번호가 없는가?
+- [ ] 프로덕션 JWT 시크릿이 환경 변수로만 설정되어 있는가?
+- [ ] 테스트 코드에 실제 비밀번호가 포함되어 있지 않은가?
 
-- [ ] JWT_SECRET이 강력한 키로 설정됨
-- [ ] 데이터베이스 비밀번호가 강력함
-- [ ] CORS가 적절히 설정됨 (프로덕션에서는 와일드카드 금지)
-- [ ] .env 파일이 .gitignore에 포함됨
-- [ ] 하드코딩된 비밀번호/키가 없음
-- [ ] API 키가 환경 변수로 관리됨
+### ✅ 배포 전 확인
+- [ ] 모든 환경 변수가 Cloud Run에 설정되어 있는가?
+- [ ] JWT 시크릿이 충분히 강력한가? (32글자 이상)
+- [ ] 데이터베이스 패스워드가 강력한가?
+- [ ] CORS 설정이 프로덕션에 적합한가?
 
-### ✅ 프로덕션 환경 추가 보안
+## 🔧 안전한 환경 변수 생성
 
+### JWT 시크릿 생성
 ```bash
-# CORS 설정 (프로덕션)
-CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+# 방법 1: OpenSSL 사용
+openssl rand -hex 32
 
-# JPA 설정 (프로덕션)
-JPA_DDL_AUTO=validate  # update 대신 validate 사용
-JPA_SHOW_SQL=false     # SQL 로그 비활성화
+# 방법 2: 온라인 생성기
+# https://generate-secret.vercel.app/32
+
+# 방법 3: uuidgen 사용
+uuidgen | tr -d '-' | head -c 32
 ```
 
-## 🚨 보안 위험 요소
-
-### ❌ 절대 하지 말아야 할 것들
-
-1. **기본 JWT Secret 사용**
-   ```yaml
-   # 나쁜 예
-   jwt:
-     secret: please-change-this-secret-key-in-production
-   ```
-
-2. **하드코딩된 비밀번호**
-   ```yaml
-   # 나쁜 예
-   spring:
-     datasource:
-       password: mypassword123
-   ```
-
-3. **와일드카드 CORS (프로덕션)**
-   ```yaml
-   # 나쁜 예 (프로덕션에서)
-   cors:
-     allowed-origins: "*"
-   ```
-
-4. **민감한 정보 로깅**
-   ```yaml
-   # 나쁜 예 (프로덕션에서)
-   logging:
-     level:
-       org.hibernate.SQL: DEBUG
-   ```
-
-## 🔧 환경 변수 관리 방법
-
-### 로컬 개발
+### 강력한 패스워드 생성
 ```bash
-# .env 파일 사용
-export $(cat .env | xargs)
-./gradlew bootRun
+# 방법 1: OpenSSL 사용
+openssl rand -base64 32
+
+# 방법 2: pwgen 사용
+pwgen -s 32 1
 ```
 
-### Docker
-```bash
-# docker-compose.yml에서 환경 변수 파일 사용
-docker-compose --env-file .env up
-```
+## 🚨 보안 사고 대응
 
-### GCP Cloud Run
-```bash
-# gcloud 명령어로 환경 변수 설정
-gcloud run services update SERVICE_NAME \
-  --update-env-vars="JWT_SECRET=your_secret,OPENAI_API_KEY=your_key"
-```
-
-## 🔍 보안 검사 도구
-
-### 1. Git Secret 검사
-```bash
-# git-secrets 설치 및 설정
-git secrets --install
-git secrets --register-aws
-
-# 보안 검사 실행
-git secrets --scan
-```
-
-### 2. 의존성 취약점 검사
-```bash
-# Gradle 의존성 검사
-./gradlew dependencyCheckAnalyze
-```
-
-### 3. 코드 정적 분석
-```bash
-# SpotBugs 실행
-./gradlew spotbugsMain
-```
-
-## 📱 로테이션 정책
-
-### JWT Secret 로테이션
-1. 새로운 강력한 키 생성
-2. 환경 변수 업데이트
-3. 애플리케이션 재시작
-4. 기존 토큰은 만료 시까지 유효
-
-### API Key 로테이션
-1. 새로운 API 키 발급
-2. 환경 변수 업데이트
-3. 애플리케이션 재시작
-4. 이전 키 비활성화
-
-## 🆘 보안 사고 대응
-
-### 키 노출 시 대응
+### 만약 비밀번호가 Git에 커밋된 경우:
 1. **즉시 조치**
-   - 노출된 키 무효화
-   - 새로운 키 생성 및 배포
-   - 관련 로그 검토
+   ```bash
+   # 커밋 히스토리에서 제거
+   git filter-branch --force --index-filter \
+     'git rm --cached --ignore-unmatch path/to/file' \
+     --prune-empty --tag-name-filter cat -- --all
+   
+   # 강제 푸시
+   git push origin --force --all
+   ```
 
-2. **후속 조치**
-   - 보안 검토 수행
-   - 접근 로그 분석
-   - 프로세스 개선
+2. **새로운 비밀번호 생성**
+   - 노출된 모든 키/패스워드 즉시 변경
+   - 새로운 강력한 키 생성 및 배포
+
+3. **보안 검토**
+   - 접근 로그 확인
+   - 다른 취약점 점검
 
 ## 📞 문의
-
-보안 관련 문제나 취약점을 발견하시면 즉시 보고해 주세요.
-
----
-
-**⚠️ 주의**: 이 가이드는 기본적인 보안 설정을 다룹니다. 실제 프로덕션 환경에서는 추가적인 보안 조치가 필요할 수 있습니다. 
+보안 문제 발견 시 즉시 알려주세요. 

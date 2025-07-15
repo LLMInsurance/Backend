@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Cloud SQL 설정 (실제 값으로 변경 필요)
-PROJECT_ID="${GCP_PROJECT_ID:-your-gcp-project-id}"
-REGION="${GCP_REGION:-asia-northeast3}"
+PROJECT_ID="${GCP_PROJECT_ID:-my-first-project}"
+REGION="${GCP_REGION:-us-central1}"
 INSTANCE_NAME="${CLOUDSQL_INSTANCE_NAME:-llminsurance-postgres}"
 DATABASE_NAME="${CLOUDSQL_DATABASE_NAME:-llminsurance}"
-DB_USER="${CLOUDSQL_USER:-your_db_user}"
-DB_PASSWORD="${CLOUDSQL_PASSWORD:-secure-password-here}"  # 보안을 위해 강력한 패스워드 사용
+DB_USER="${CLOUDSQL_USER:-llminsurance_user}"
+DB_PASSWORD="${CLOUDSQL_PASSWORD:-$(openssl rand -base64 32)}"  # 랜덤 보안 패스워드 생성
 
 # 색상 정의
 RED='\033[0;31m'
@@ -30,7 +30,6 @@ gcloud sql instances create $INSTANCE_NAME \
     --storage-type=SSD \
     --storage-size=10GB \
     --backup-start-time=03:00 \
-    --enable-bin-log \
     --maintenance-release-channel=production \
     --maintenance-window-day=SUN \
     --maintenance-window-hour=4

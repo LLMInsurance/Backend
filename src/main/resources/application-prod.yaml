@@ -31,7 +31,7 @@ openai:
 
 # JWT 설정
 jwt:
-  secret: ${JWT_SECRET:78d3a7ea3ceaa125fac5d412c134cababb24afea865ff0298317ce0b8d87dde4}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
 # CORS 설정
