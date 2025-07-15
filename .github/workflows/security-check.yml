@@ -1,0 +1,89 @@
+name: Security Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: ${{ runner.os }}-gradle
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Run tests
+      run: ./gradlew test
+      
+    - name: Check for secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+        
+    - name: Run OWASP Dependency Check
+      run: |
+        ./gradlew dependencyCheckAnalyze --info
+      continue-on-error: true
+      
+    - name: Upload dependency check results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: dependency-check-report
+        path: build/reports/
+        
+    - name: Check for hardcoded secrets in code
+      run: |
+        echo "Checking for potential hardcoded secrets..."
+        # JWT 시크릿 패턴 검사
+        if grep -r "jwt.*secret.*=" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties"; then
+          echo "⚠️  Warning: Found potential hardcoded JWT secrets"
+          exit 1
+        fi
+        
+        # 비밀번호 패턴 검사  
+        if grep -r "password.*=" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties" | grep -v '\${'; then
+          echo "⚠️  Warning: Found potential hardcoded passwords"
+          exit 1
+        fi
+        
+        # API 키 패턴 검사
+        if grep -r "api.*key.*=" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties" | grep -v '\${'; then
+          echo "⚠️  Warning: Found potential hardcoded API keys"
+          exit 1
+        fi
+        
+        echo "✅ No hardcoded secrets found"
+        
+    - name: Check environment variable usage
+      run: |
+        echo "Checking if sensitive values are properly using environment variables..."
+        
+        # application.yaml에서 환경 변수 사용 확인
+        if ! grep -q '\${' src/main/resources/application*.yaml; then
+          echo "⚠️  Warning: Configuration files should use environment variables"
+          exit 1
+        fi
+        
+        echo "✅ Environment variables are properly used" 
