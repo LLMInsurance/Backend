@@ -9,6 +9,43 @@
 - **PostgreSQL**
 - **Gradle**
 
+## 🔒 보안 설정
+
+### ⚠️ 중요: 환경 변수 설정 필수
+
+```bash
+# JWT 설정 (필수)
+JWT_SECRET=your_strong_jwt_secret_here
+
+# 데이터베이스 연결
+DATABASE_URL=jdbc:postgresql://localhost:5432/llminsurance
+DATABASE_USERNAME=your_username
+DATABASE_PASSWORD=your_password
+
+# OpenAI API
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### 🛡️ 로컬 개발 환경 설정
+
+1. **환경 변수 파일 생성**
+   ```bash
+   cp env.local.example .env
+   # .env 파일을 편집하여 실제 값 입력
+   ```
+
+2. **강력한 JWT Secret 생성**
+   ```bash
+   openssl rand -hex 32
+   ```
+
+3. **보안 검사 실행**
+   ```bash
+   ./gradlew dependencyCheckAnalyze
+   ```
+
+참고사항 -> [SECURITY.md](SECURITY.md)
+
 ## 📋 주요 기능(추후 추가 예정)
 
 - 사용자 회원가입/로그인
