@@ -386,37 +386,71 @@ class AuthRepository(private val apiService: ApiService) {
 ./gradlew test
 ```
 
-## ☁️ Cloud Run 배포
+## 🚀 배포 방법
 
-### 전제 조건
-1. Google Cloud SDK 설치
-2. Docker Desktop 설치
-3. GCP 프로젝트 생성
+### 🔄 방법 1: GitHub Actions 자동 배포
 
-### 1. GCP 인증
+#### 1. GitHub Secrets 설정
+GitHub 저장소 → Settings → Secrets and variables → Actions에서 다음 설정:
+
+```
+GCP_SA_KEY: GCP 서비스 계정 JSON 키 (전체 JSON 내용)
+DB_PASSWORD: LLMInsurance2024 (또는 새로운 보안 비밀번호)
+JWT_SECRET: 32자리 이상 랜덤 문자열 (예: openssl rand -hex 32 결과)
+```
+
+#### 2. GCP 서비스 계정 생성 및 권한 설정
 ```bash
+# 서비스 계정 생성
+gcloud iam service-accounts create github-actions \
+    --display-name="GitHub Actions"
+
+# 필요한 권한 부여
+gcloud projects add-iam-policy-binding concise-dolphin-465907-s7 \
+    --member="serviceAccount:github-actions@concise-dolphin-465907-s7.iam.gserviceaccount.com" \
+    --role="roles/run.admin"
+
+gcloud projects add-iam-policy-binding concise-dolphin-465907-s7 \
+    --member="serviceAccount:github-actions@concise-dolphin-465907-s7.iam.gserviceaccount.com" \
+    --role="roles/storage.admin"
+
+gcloud projects add-iam-policy-binding concise-dolphin-465907-s7 \
+    --member="serviceAccount:github-actions@concise-dolphin-465907-s7.iam.gserviceaccount.com" \
+    --role="roles/cloudsql.client"
+
+# JSON 키 생성 (이 내용을 GCP_SA_KEY 시크릿에 복사)
+gcloud iam service-accounts keys create github-actions-key.json \
+    --iam-account=github-actions@concise-dolphin-465907-s7.iam.gserviceaccount.com
+
+cat github-actions-key.json
+```
+
+#### 3. 자동 배포 실행
+- `main` 또는 `master` 브랜치에 코드 푸시
+- GitHub Actions가 자동으로: 테스트 → 빌드 → 배포 실행
+- 배포 완료 후 URL 확인
+
+### 🛠️ 방법 2: 수동 배포
+
+#### 전제 조건
+- Google Cloud SDK 설치 및 인증
+- Docker 설치
+- 환경변수 설정
+
+```bash
+# 필수 환경변수 설정
+export DB_PASSWORD="LLMInsurance2024"
+export JWT_SECRET=$(openssl rand -hex 32)
+
+# GCP 인증
 gcloud auth login
-gcloud config set project YOUR_PROJECT_ID
+gcloud config set project concise-dolphin-465907-s7
 ```
 
-### 2. Cloud SQL 설정 (선택사항)
-```bash
-./setup-cloudsql.sh
-```
-
-### 3. Cloud Run 배포
+#### 배포 스크립트 실행
 ```bash
 ./deploy-to-cloudrun.sh
 ```
-
-### 4. 환경 변수 설정
-배포 후 Cloud Run 콘솔에서 다음 환경 변수들을 설정하세요:
-
-- `DATABASE_URL`: PostgreSQL 연결 문자열
-- `DATABASE_USERNAME`: 데이터베이스 사용자명
-- `DATABASE_PASSWORD`: 데이터베이스 비밀번호
-- `JWT_SECRET`: JWT 서명용 비밀키
-- `OPENAI_API_KEY`: OpenAI API 키
 
 ## 🔧 설정 파일
 

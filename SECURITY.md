@@ -33,6 +33,43 @@ export OPENAI_API_KEY=your_openai_api_key
 - `${DATABASE_PASSWORD}` (기본값 없음)
 - `${OPENAI_API_KEY}` (기본값 없음)
 
+## 🔄 GitHub Actions 보안 설정
+
+### GitHub Secrets 설정 가이드
+GitHub 저장소 → Settings → Secrets and variables → Actions에서 설정:
+
+#### 필수 Secrets
+1. **GCP_SA_KEY**: GCP 서비스 계정 JSON 키
+   ```bash
+   # 서비스 계정 생성 후 JSON 키 다운로드
+   gcloud iam service-accounts keys create github-actions-key.json \
+       --iam-account=github-actions@PROJECT_ID.iam.gserviceaccount.com
+   
+   # 파일 내용 전체를 복사하여 GitHub Secret에 등록
+   cat github-actions-key.json
+   ```
+
+2. **DB_PASSWORD**: PostgreSQL 데이터베이스 비밀번호
+   - 강력한 비밀번호 사용 (최소 12자, 대소문자+숫자+특수문자)
+   - 예: `MySecurePassword2024!`
+
+3. **JWT_SECRET**: JWT 토큰 서명 키
+   ```bash
+   # 안전한 랜덤 키 생성
+   openssl rand -hex 32
+   ```
+
+#### 권한 최소화 원칙
+서비스 계정에는 필요한 최소 권한만 부여:
+- `roles/run.admin`: Cloud Run 서비스 관리
+- `roles/storage.admin`: Container Registry 접근
+- `roles/cloudsql.client`: Cloud SQL 연결
+
+### 보안 모니터링
+- GitHub Actions 실행 로그에서 비밀 정보 노출 확인
+- 서비스 계정 키 정기적 교체 (3개월마다)
+- 배포 실패 시 로그에서 민감 정보 확인
+
 ## 🛡️ 보안 체크리스트
 
 ### ✅ Git 커밋 전 확인
@@ -41,8 +78,14 @@ export OPENAI_API_KEY=your_openai_api_key
 - [ ] 프로덕션 JWT 시크릿이 환경 변수로만 설정되어 있는가?
 - [ ] 테스트 코드에 실제 비밀번호가 포함되어 있지 않은가?
 
+### ✅ GitHub Actions 설정 확인
+- [ ] GitHub Secrets에 모든 필수 값이 설정되어 있는가?
+- [ ] GCP 서비스 계정에 최소 권한만 부여되어 있는가?
+- [ ] GitHub Actions 워크플로우에서 환경변수가 올바르게 참조되고 있는가?
+- [ ] 배포 로그에 비밀 정보가 노출되지 않는가?
+
 ### ✅ 배포 전 확인
-- [ ] 모든 환경 변수가 Cloud Run에 설정되어 있는가?
+- [ ] 모든 환경 변수가 설정되어 있는가?
 - [ ] JWT 시크릿이 충분히 강력한가? (32글자 이상)
 - [ ] 데이터베이스 패스워드가 강력한가?
 - [ ] CORS 설정이 프로덕션에 적합한가?
