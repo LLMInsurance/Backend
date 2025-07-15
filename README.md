@@ -200,7 +200,7 @@ Content-Type: application/json
 **Response:**
 ```json
 {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "accessToken": "토큰토큰토큰...",
     "tokenType": "Bearer",
     "userId": "testuser123",
     "email": "test@example.com",
