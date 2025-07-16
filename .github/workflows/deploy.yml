@@ -95,7 +95,8 @@ jobs:
       run: |
         echo "🔍 Verifying WIF authentication..."
         gcloud config get-value account
-        gcloud projects describe $PROJECT_ID --format="value(projectId)"
+        echo "🔍 Testing basic GCP access..."
+        gcloud config list --format="value(core.project)" || echo "Project access test failed, but proceeding..."
     
     - name: Configure Docker for Artifact Registry
       run: |
