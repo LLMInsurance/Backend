@@ -92,7 +92,17 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
     
     - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker us-central1-docker.pkg.dev
+      run: |
+        # 현재 인증 상태 확인 (디버깅)
+        echo "🔍 Current authentication status:"
+        gcloud auth list
+        
+        # 권한 테스트
+        echo "🔍 Testing Artifact Registry access:"
+        gcloud artifacts repositories list --location=us-central1
+        
+        echo "🔐 Configuring Docker authentication:"
+        gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
     
     - name: Build and Push Docker image
       run: |
