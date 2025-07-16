@@ -1,8 +1,5 @@
 name: Deploy to Cloud Run
 
-# Workload Identity Federation을 사용하는 안전한 배포 방식
-# JSON 키 없이 GitHub와 GCP 간 안전한 인증
-
 on:
   push:
     branches: [ main, master ]
@@ -13,8 +10,6 @@ env:
   PROJECT_ID: concise-dolphin-465907-s7
   REGION: us-central1
   SERVICE_NAME: llminsurance-backend
-  WIF_PROVIDER: projects/983352933205/locations/global/workloadIdentityPools/github-pool/providers/github
-  WIF_SERVICE_ACCOUNT: github-actions-wif@concise-dolphin-465907-s7.iam.gserviceaccount.com
 
 jobs:
   test:
@@ -49,10 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
-    permissions:
-      contents: read
-      id-token: write
-    
     steps:
     - uses: actions/checkout@v4
     
@@ -75,11 +66,35 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     
-    - name: Authenticate to Google Cloud (WIF)
+    - name: Check GitHub Secrets
+      run: |
+        echo "Checking if required secrets are set..."
+        if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+          echo "❌ GCP_SA_KEY secret is not set"
+          exit 1
+        else
+          echo "✅ GCP_SA_KEY secret is set"
+        fi
+        
+        if [ -z "${{ secrets.DB_PASSWORD }}" ]; then
+          echo "❌ DB_PASSWORD secret is not set"
+          exit 1
+        else
+          echo "✅ DB_PASSWORD secret is set"
+        fi
+        
+        if [ -z "${{ secrets.JWT_SECRET }}" ]; then
+          echo "❌ JWT_SECRET secret is not set"
+          exit 1
+        else
+          echo "✅ JWT_SECRET secret is set"
+        fi
+    
+    - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
       with:
-        workload_identity_provider: ${{ env.WIF_PROVIDER }}
-        service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
     
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
@@ -118,4 +133,4 @@ jobs:
     - name: Show deployment URL
       run: |
         echo "🚀 배포 완료!"
-        gcloud run services describe $SERVICE_NAME --region=$REGION --format='value(status.url)' 
+        gcloud run services describe $SERVICE_NAME --region=$REGION --format='value(status.url)'
