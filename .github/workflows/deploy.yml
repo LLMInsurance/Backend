@@ -87,7 +87,6 @@ jobs:
       with:
         workload_identity_provider: ${{ env.WIF_PROVIDER }}
         service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
-        token_format: access_token
     
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
@@ -100,18 +99,15 @@ jobs:
     
     - name: Configure Docker for Artifact Registry
       run: |
-        # WIF 토큰 새로고침 (TokenRefreshError 방지)
-        echo "🔄 Refreshing authentication token..."
-        gcloud auth application-default print-access-token > /dev/null 2>&1 || true
-        
-        # 현재 인증 상태 확인 (안전한 방법)
+        # 현재 인증 상태 확인
         echo "🔍 Current authentication account:"
         gcloud config get-value account
         
-        echo "🔐 Configuring Docker authentication:"
-        gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+        # 기본 gcloud docker 설정 (WIF와 호환성 더 좋음)
+        echo "🔐 Configuring Docker with gcloud helper:"
+        gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
         
-        # 권한 테스트 (로그인 후)
+        # 권한 테스트
         echo "🔍 Testing Artifact Registry access:"
         gcloud artifacts repositories list --location=us-central1 || echo "Repository list failed, but proceeding..."
     
