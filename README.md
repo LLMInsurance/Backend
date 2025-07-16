@@ -226,15 +226,15 @@ fun getAuthHeader(): String {
 ```kotlin
 // SignupRequest.kt
 data class SignupRequest(
-    val userId: String,
-    val password: String,
-    val email: String,
-    val name: String,
-    val phoneNumber: String,
+    val userId: String,           
+    val password: String,         
+    val email: String,           
+    val name: String,             
+    val phoneNumber: String,      
     val birthDate: String, // "YYYY-MM-DD" 형식
     val gender: String, // "남" 또는 "여"
-    val isMarried: Boolean,
-    val job: String,
+    val isMarried: Boolean,       
+    val job: String,              
     val diseases: List<String> = emptyList(),
     val subscriptions: List<String> = emptyList()
 )
