@@ -75,6 +75,13 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     
+    - name: Debug GitHub context
+      run: |
+        echo "Repository: ${{ github.repository }}"
+        echo "Repository owner: ${{ github.repository_owner }}"
+        echo "Ref: ${{ github.ref }}"
+        echo "Actor: ${{ github.actor }}"
+        
     - name: Authenticate to Google Cloud (WIF)
       uses: google-github-actions/auth@v2
       with:
