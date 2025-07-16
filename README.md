@@ -486,4 +486,26 @@ gcloud config set project concise-dolphin-465907-s7
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [Google Cloud Run](https://cloud.google.com/run/docs)
 - [Google Cloud SQL](https://cloud.google.com/sql/docs)
-- [JWT.io](https://jwt.io/)# GitHub Actions WIF 권한 수정
+- [JWT.io](https://jwt.io/)
+
+# GitHub Actions WIF 권한 수정
+
+## 🔧 최근 수정 사항
+
+### GitHub Actions WIF 권한 문제 해결
+- **문제**: `PERMISSION_DENIED: Permission 'iam.serviceaccounts.actAs' denied`
+- **해결**: Compute Engine 기본 서비스 계정에 대한 `iam.serviceAccountUser` 권한 추가
+- **적용 일시**: 2024년 12월
+
+권한 설정:
+```bash
+# 프로젝트 레벨 권한 추가
+gcloud projects add-iam-policy-binding concise-dolphin-465907-s7 \
+  --member="serviceAccount:github-actions-wif@concise-dolphin-465907-s7.iam.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+
+# Compute Engine 서비스 계정에 대한 actAs 권한 추가
+gcloud iam service-accounts add-iam-policy-binding 983352933205-compute@developer.gserviceaccount.com \
+  --member="serviceAccount:github-actions-wif@concise-dolphin-465907-s7.iam.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+```
