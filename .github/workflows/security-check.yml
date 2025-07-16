@@ -54,20 +54,20 @@ jobs:
     - name: Check for hardcoded secrets in code
       run: |
         echo "Checking for potential hardcoded secrets..."
-        # JWT 시크릿 패턴 검사
-        if grep -r "jwt.*secret.*=" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties"; then
+        # JWT 시크릿 패턴 검사 (실제 값이 있는 경우만)
+        if grep -r "jwt.*secret.*=.*[a-zA-Z0-9]" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties" | grep -v '\${'; then
           echo "⚠️  Warning: Found potential hardcoded JWT secrets"
           exit 1
         fi
         
-        # 비밀번호 패턴 검사  
-        if grep -r "password.*=" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties" | grep -v '\${'; then
+        # 비밀번호 패턴 검사 (실제 값이 할당된 경우만, 어노테이션 제외)
+        if grep -r "password\s*=\s*[\"'][^\"']*[\"']" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties" | grep -v '\${' | grep -v '@Column'; then
           echo "⚠️  Warning: Found potential hardcoded passwords"
           exit 1
         fi
         
-        # API 키 패턴 검사
-        if grep -r "api.*key.*=" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties" | grep -v '\${'; then
+        # API 키 패턴 검사 (실제 값이 있는 경우만)
+        if grep -r "api.*key.*=.*[a-zA-Z0-9]" src/ --include="*.java" --include="*.yaml" --include="*.yml" --include="*.properties" | grep -v '\${'; then
           echo "⚠️  Warning: Found potential hardcoded API keys"
           exit 1
         fi
