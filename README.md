@@ -486,4 +486,4 @@ gcloud config set project concise-dolphin-465907-s7
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [Google Cloud Run](https://cloud.google.com/run/docs)
 - [Google Cloud SQL](https://cloud.google.com/sql/docs)
-- [JWT.io](https://jwt.io/)
+- [JWT.io](https://jwt.io/)# GitHub Actions WIF 권한 수정
